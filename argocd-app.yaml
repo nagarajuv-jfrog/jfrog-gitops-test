@@ -10,18 +10,24 @@ spec:
     # Source 1: The Helm chart from JFrog
     - repoURL: https://charts.jfrog.io
       chart: jfrog-platform
-      targetRevision: "11.4.2"            # <-- one version behind latest
+      targetRevision: "11.4.2"
       helm:
         skipCrds: true
         valueFiles:
-          - $values/customvalues.yaml     # pulled from Git repo below
+          - $values/customvalues.yaml
     # Source 2: Your Git repo with values
     - repoURL: https://github.com/nagarajuv-jfrog/jfrog-gitops-test.git
       targetRevision: main
-      ref: values                         # ArgoCD names this "$values"
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: jfrog-platform
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: jfrog-platform-artifactory-nginx-certificate
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       prune: true
@@ -29,3 +35,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
