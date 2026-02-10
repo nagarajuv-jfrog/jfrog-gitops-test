@@ -1,0 +1,16 @@
+# customvalues.yaml -- evaluation config for Rancher Desktop
+postgresql:
+  enabled: true                 # bundled DB (evaluation only)
+
+xray:
+  enabled: false                # save resources on local machine
+distribution:
+  enabled: false
+rabbitmq:
+  enabled: false                # not needed without Xray
+
+# REQUIRED for fresh install via ArgoCD -- disable pre-upgrade hooks
+preUpgradeHook:
+  enabled: false
+upgradeHookSTSDelete:
+  enabled: false

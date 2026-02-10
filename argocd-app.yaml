@@ -1,0 +1,31 @@
+# argocd-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jfrog-platform
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    # Source 1: The Helm chart from JFrog
+    - repoURL: https://charts.jfrog.io
+      chart: jfrog-platform
+      targetRevision: "11.4.0"            # <-- one version behind latest
+      helm:
+        skipCrds: true
+        valueFiles:
+          - $values/customvalues.yaml     # pulled from Git repo below
+    # Source 2: Your Git repo with values
+    - repoURL: https://github.com/nagarajuv-jfrog/jfrog-gitops-test.git
+      targetRevision: main
+      ref: values                         # ArgoCD names this "$values"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jfrog-platform
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
