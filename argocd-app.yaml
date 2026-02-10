@@ -28,6 +28,13 @@ spec:
       name: jfrog-platform-artifactory-nginx-certificate
       jsonPointers:
         - /data
+    - group: apps
+      kind: StatefulSet
+      name: jfrog-platform-artifactory
+      jqPathExpressions:
+        - .spec.template.spec.containers[].resources
+        - .spec.template.spec.initContainers[].resources
+        - .spec.volumeClaimTemplates[].spec
   syncPolicy:
     automated:
       prune: true
