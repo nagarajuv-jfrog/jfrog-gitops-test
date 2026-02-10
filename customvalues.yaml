@@ -17,3 +17,6 @@ upgradeHookSTSDelete:
 
 # Required for bundled PostgreSQL upgrade
 databaseUpgradeReady: true
+artifactory:
+  nginx:
+    tlsSecretName: jfrog-platform-tls   # use your pre-created secret
