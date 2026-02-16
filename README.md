@@ -189,7 +189,10 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 │   ├── create-secrets.sh        # Create Kubernetes secrets for JFrog Platform
 │   └── create-tls-secret.sh     # Pre-create a stable TLS secret
 ├── docs/
+│   ├── HELM-DOCS-COVERAGE.md    # Mapping to official Helm install/upgrade/uninstall docs
+│   ├── INGRESS-ROUTE.md         # Expose platform (Kubernetes Ingress / OpenShift Route)
 │   ├── TROUBLESHOOTING.md       # Common issues and fixes
+│   ├── UNINSTALL.md             # Uninstall via Argo CD and cleanup
 │   └── UPGRADING.md             # Upgrade procedures
 ├── CONTRIBUTING.md              # How to contribute
 ├── CODE_OF_CONDUCT.md           # Community guidelines
@@ -229,6 +232,17 @@ The manifests include `ignoreDifferences` to handle two known sources of drift:
 
 For a cleaner solution, [pre-create a stable TLS secret](#3-optional-pre-create-a-stable-tls-secret).
 
+## Relationship to official Helm documentation
+
+This repo focuses on **deploying via Argo CD** (Application manifests, sync, drift, upgrade flow). It does **not** replace the full [JFrog Platform Helm documentation](https://jfrog.com/help/r/install-the-jfrog-platform-using-helm-chart). The same Helm chart and values are used; only the deployment mechanism differs.
+
+| You need… | Use |
+|:---|:---|
+| Argo CD deploy, examples, scripts, Argo-specific troubleshooting/upgrade/uninstall | **This repo** ([README](README.md), [examples](examples/), [docs](docs/)) |
+| Prerequisites, planning, external DB/filestore, licensing, production checklist, advanced options (TLS, HA, Xray RabbitMQ, etc.) | **Official Helm docs** (linked from [docs/HELM-DOCS-COVERAGE.md](docs/HELM-DOCS-COVERAGE.md)) |
+
+**Full mapping:** [docs/HELM-DOCS-COVERAGE.md](docs/HELM-DOCS-COVERAGE.md) — every topic in the official "Install \| Upgrade \| Uninstall" and "Helm Charts for Advanced Users" sections is mapped to either this repo or the official doc link.
+
 ## Upgrading
 
 To upgrade the JFrog Platform chart version:
@@ -247,6 +261,14 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and fix
 - Persistent OutOfSync status
 - Database connection errors
 - Jobs stuck in Terminating state
+
+## Next steps after deploy
+
+- **[Expose the platform](docs/INGRESS-ROUTE.md)** — Ingress (Kubernetes) or Route (OpenShift) for HTTPS.
+- **Licensing** — [Official: Manage Licensing](https://jfrog.com/help/r/platform-helm-chart-manage-licensing).
+- **[Upgrade](docs/UPGRADING.md)** — Argo CD flow; [official upgrade guide](https://jfrog.com/help/r/upgrade-jfrog-platform-using-helm-chart) for rollback and major versions.
+- **[Uninstall](docs/UNINSTALL.md)** — Remove Application and optional PVC/external cleanup.
+- **Advanced** — [Official: Helm Charts for Advanced Users](https://jfrog.com/help/r/helm-charts-for-advanced-users).
 
 ## Contributing
 
