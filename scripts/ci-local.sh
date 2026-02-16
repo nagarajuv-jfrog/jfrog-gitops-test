@@ -22,7 +22,7 @@ echo "=== 2. Helm template ==="
 if command -v helm &>/dev/null; then
   helm repo add jfrog https://charts.jfrog.io 2>/dev/null || true
   helm repo update jfrog
-  for name in root evaluation production openshift multi-source; do
+  for name in root evaluation production eks openshift multi-source; do
     case "$name" in
       root)
         helm template jfrog-platform jfrog/jfrog-platform --version "$CHART_VERSION" \
@@ -35,6 +35,10 @@ if command -v helm &>/dev/null; then
       production)
         helm template jfrog-platform jfrog/jfrog-platform --version "$CHART_VERSION" \
           -f examples/production/customvalues.yaml --namespace jfrog-platform >/dev/null
+        ;;
+      eks)
+        helm template jfrog-platform jfrog/jfrog-platform --version "$CHART_VERSION" \
+          -f examples/eks/customvalues.yaml --namespace jfrog-platform >/dev/null
         ;;
       openshift)
         helm template jfrog-platform jfrog/jfrog-platform --version "$CHART_VERSION" \
@@ -72,7 +76,7 @@ if command -v kubectl &>/dev/null && command -v kind &>/dev/null; then
     echo "    for f in examples/*/argocd-app.yaml; do kubectl apply --dry-run=client -f \"\$f\"; done"
   else
     kubectl apply --dry-run=client -f argocd-app.yaml
-    for f in examples/evaluation/argocd-app.yaml examples/production/argocd-app.yaml examples/openshift/argocd-app.yaml examples/multi-source/argocd-app.yaml; do
+    for f in examples/evaluation/argocd-app.yaml examples/production/argocd-app.yaml examples/eks/argocd-app.yaml examples/openshift/argocd-app.yaml examples/multi-source/argocd-app.yaml; do
       kubectl apply --dry-run=client -f "$f"
     done
     echo "  kubectl dry-run OK"

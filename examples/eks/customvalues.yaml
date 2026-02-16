@@ -1,0 +1,47 @@
+# EKS production values for JFrog Platform
+# Use RDS for databases; store credentials in Kubernetes secrets. Never commit secrets to Git.
+# See docs/DEPLOY-EKS.md for full instructions.
+
+postgresql:
+  enabled: false
+
+global:
+  masterKeySecretName: "my-platform-keys"
+  joinKeySecretName: "my-platform-keys"
+  database:
+    initDBCreation: false   # external DB; create DB/schema yourself or via init
+
+artifactory:
+  artifactory:
+    database:
+      type: postgresql
+      driver: org.postgresql.Driver
+      # Replace <RDS_ARTIFACTORY_ENDPOINT> with your RDS instance endpoint
+      url: "jdbc:postgresql://<RDS_ARTIFACTORY_ENDPOINT>:5432/artifactory"
+      secretName: "artifactory-db-secret"
+  nginx:
+    # Pre-create with scripts/create-tls-secret.sh or use cert-manager
+    tlsSecretName: jfrog-platform-tls
+
+xray:
+  enabled: true
+  database:
+    secretName: "xray-db-secret"
+  # Optional: use a dedicated RDS instance for Xray; set url or use secret with url key
+
+# Re-enable hooks after first successful deploy (for upgrades)
+preUpgradeHook:
+  enabled: true
+upgradeHookSTSDelete:
+  enabled: true
+
+# Optional: S3 filestore for Artifactory (production EKS pattern)
+# See https://jfrog.com/help/r/helm-charts-for-advanced-users/
+# artifactory:
+#   artifactory:
+#     persistence:
+#       type: aws-s3
+#       ...
+
+# Optional: Ingress for AWS ALB – apply separately or use chart ingress config
+# See docs/INGRESS-ROUTE.md (AWS ALB section)

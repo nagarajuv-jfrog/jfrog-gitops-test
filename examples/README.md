@@ -6,6 +6,7 @@ Ready-to-use Argo CD Application manifests and Helm value overlays for different
 |:---|:---|:---|:---|:---|
 | [evaluation](evaluation/) | PoC, demos, local testing | 2.4+ | Bundled PostgreSQL | Single source, inline values |
 | [production](production/) | Production with external DB | 2.6+ | External | Multi-source, secrets |
+| [eks](eks/) | **AWS EKS production** | 2.6+ | External (RDS) | Multi-source, RDS, ALB-ready |
 | [openshift](openshift/) | OpenShift 4.x | 2.6+ | External | Security context overrides |
 | [multi-source](multi-source/) | Full GitOps with overlays | 2.6+ | Configurable | valueFiles + sizing overlay |
 

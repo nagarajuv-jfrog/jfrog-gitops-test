@@ -63,10 +63,12 @@ Argo CD deploys the same Helm chart (`jfrog-platform`) from the same repo (`http
 
 | Requirement | Version | Notes |
 |:---|:---|:---|
-| Kubernetes cluster | 1.26+ | EKS, GKE, AKS, OpenShift 4.x, or local (minikube, kind) |
+| Kubernetes cluster | 1.26+ | EKS, GKE, AKS, OpenShift 4.x, or local (minikube, kind, Rancher Desktop) |
 | `kubectl` | 1.26+ | Configured to target your cluster |
 | Argo CD | 2.6+ | 2.6+ required for multi-source Applications |
 | Helm (optional) | 3.x | Only needed if you want to inspect charts locally |
+
+**Deploy on AWS EKS:** For production-grade EKS (RDS, secrets, ALB), see **[docs/DEPLOY-EKS.md](docs/DEPLOY-EKS.md)** and the **[examples/eks/](examples/eks/)** example. Use `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` if the Argo CD install hits the 262144-byte annotation limit.
 
 ### 1. Install Argo CD
 
@@ -76,7 +78,15 @@ If Argo CD is not already installed on your cluster:
 ./scripts/setup-argocd.sh
 ```
 
-Or manually:
+On **EKS** (and other clusters that hit the ApplicationSet CRD annotation limit), use the filtered install:
+
+```bash
+SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh
+```
+
+(Requires [yq](https://github.com/mikefarah/yq). See [docs/DEPLOY-EKS.md](docs/DEPLOY-EKS.md) for full EKS steps.)
+
+Or manually (full install):
 
 ```bash
 kubectl create namespace argocd
@@ -178,6 +188,9 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 │   ├── production/              # External DB, secrets, sizing
 │   │   ├── argocd-app.yaml
 │   │   └── customvalues.yaml
+│   ├── eks/                     # AWS EKS production (RDS, ALB-ready)
+│   │   ├── argocd-app.yaml
+│   │   └── customvalues.yaml
 │   ├── openshift/               # OpenShift security context overrides
 │   │   ├── argocd-app.yaml
 │   │   └── customvalues.yaml
@@ -193,8 +206,9 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 │       ├── validate.yaml        # CI: YAML lint, Helm template, scripts, dry-run
 │       └── integration.yaml     # Optional: kind + Argo CD (manual trigger)
 ├── docs/
+│   ├── DEPLOY-EKS.md            # Deploy on AWS EKS (production-grade, step-by-step)
 │   ├── HELM-DOCS-COVERAGE.md    # Mapping to official Helm install/upgrade/uninstall docs
-│   ├── INGRESS-ROUTE.md         # Expose platform (Kubernetes Ingress / OpenShift Route)
+│   ├── INGRESS-ROUTE.md         # Expose platform (Ingress / ALB / OpenShift Route)
 │   ├── TESTING.md               # How to test (CI, local, checklist before going public)
 │   ├── TROUBLESHOOTING.md       # Common issues and fixes
 │   ├── UNINSTALL.md             # Uninstall via Argo CD and cleanup
@@ -210,6 +224,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 |:---|:---|:---|:---|:---|
 | [evaluation](examples/evaluation/) | Local testing, PoC, demos | 2.4+ | Bundled PostgreSQL | Disabled |
 | [production](examples/production/) | Production deployments | 2.6+ | External PostgreSQL | Enabled |
+| [eks](examples/eks/) | **AWS EKS production** (RDS, ALB-ready) | 2.6+ | External (RDS) | Enabled |
 | [openshift](examples/openshift/) | OpenShift 4.x clusters | 2.6+ | External PostgreSQL | Configurable |
 | [multi-source](examples/multi-source/) | Full GitOps with sizing overlays | 2.6+ | Configurable | Configurable |
 

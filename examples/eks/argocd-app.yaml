@@ -1,6 +1,6 @@
-# Argo CD Application: JFrog Platform (Production)
-# Use case: Production with external DB, secrets, sizing.
-# Argo CD: 2.6+ recommended. Replace <YOUR_ORG>/<YOUR_REPO> with your Git repo.
+# Argo CD Application: JFrog Platform (EKS Production)
+# Use case: Production-grade EKS with RDS, secrets, ALB-ready.
+# Argo CD: 2.6+ required. Replace <YOUR_ORG>/<YOUR_REPO> with your Git repo.
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application

@@ -59,6 +59,56 @@ for f in examples/*/argocd-app.yaml; do kubectl apply --dry-run=client -f "$f"; 
 
 ## 4. Local integration test (with cluster)
 
+### Option A: Rancher Desktop (Mac)
+
+Use your existing Rancher Desktop Kubernetes cluster.
+
+**Prerequisites**
+
+- [Rancher Desktop](https://rancherdesktop.io/) installed; cluster running (k3s or RKE2).
+- `kubectl` in PATH (Rancher Desktop usually configures this).
+
+**Steps**
+
+```bash
+# 1. Ensure cluster is up and kubectl targets it
+kubectl cluster-info
+
+# 2. Install Argo CD (without ApplicationSet CRD to avoid 262144-byte annotation limit)
+#    Requires yq: brew install yq
+kubectl create namespace argocd
+curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
+kubectl apply -n argocd -f install-filtered.yaml
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+
+# 3. Deploy the evaluation Application
+kubectl apply -f examples/evaluation/argocd-app.yaml
+
+# 4. Watch sync status (Ctrl+C to stop)
+kubectl get application jfrog-platform -n argocd -w
+```
+
+In another terminal, watch JFrog Platform pods (Artifactory can take 3–5 minutes to become Ready):
+
+```bash
+kubectl get pods -n jfrog-platform -w
+```
+
+**Note:** Installing without the ApplicationSet CRD means you can't use ApplicationSet resources; plain `Application` resources (used by this repo) work fine.
+
+**Clean up**
+
+```bash
+kubectl delete application jfrog-platform -n argocd
+kubectl delete namespace jfrog-platform
+# To remove Argo CD: kubectl delete namespace argocd
+```
+
+---
+
+### Option B: kind (Docker + kubectl)
+
 If you have **Docker** and **kubectl**:
 
 ```bash
