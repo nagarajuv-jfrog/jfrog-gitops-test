@@ -33,11 +33,23 @@ jobs:
           chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
           kubectl cluster-info
 
-      - name: Install Argo CD
+      - name: Install Argo CD (excluding ApplicationSet CRD to avoid 262144-byte annotation limit)
         run: |
           set -e
           kubectl create namespace argocd
-          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+          curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+          ruby -r yaml -e "
+            docs = YAML.load_stream(File.read('install.yaml'))
+            docs.each do |doc|
+              next if doc.nil?
+              if doc['kind'] == 'CustomResourceDefinition' && doc.dig('metadata', 'name') == 'applicationsets.argoproj.io'
+                puts 'Skipping applicationsets.argoproj.io CRD (annotation size limit).'
+                next
+              end
+              puts doc.to_yaml
+            end
+          " > install-filtered.yaml
+          kubectl apply -n argocd -f install-filtered.yaml
           kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
       - name: Apply evaluation Application

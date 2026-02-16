@@ -126,6 +126,8 @@ jobs:
           chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
           kubectl cluster-info
 
+      # Use standalone Application CRD only (full install.yaml includes ApplicationSet CRD
+      # which exceeds Kubernetes 262144-byte annotation limit and would fail).
       - name: Install Argo CD Application CRD only (for dry-run validation)
         run: |
           set -e
