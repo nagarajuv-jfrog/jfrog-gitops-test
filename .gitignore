@@ -26,6 +26,9 @@ Thumbs.db
 *.tgz
 charts/
 
+# Generated in CI (kind kubeconfig)
+kubeconfig
+
 # Terraform (if used for infra)
 .terraform/
 *.tfstate

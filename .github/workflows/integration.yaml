@@ -16,49 +16,55 @@ jobs:
 
       - name: Install kind and kubectl
         run: |
-          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
+          set -e
+          curl -fsSL -o ./kind "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
           chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
-          curl -Lo kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl && sudo mv kubectl /usr/local/bin/kubectl
+          KUBECTL_VER=$(curl -sL https://dl.k8s.io/release/stable.txt)
+          curl -fsSL -o ./kubectl "https://dl.k8s.io/release/${KUBECTL_VER}/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl && sudo mv ./kubectl /usr/local/bin/kubectl
+          kind --version && kubectl version --client
 
-      - name: Create kind cluster
+      - name: Create kind cluster and set kubeconfig
         run: |
-          kind create cluster --wait 90s --image kindest/node:v1.28.0
-
-      - name: Set kubeconfig
-        run: |
-          mkdir -p "$HOME/.kube"
-          kind get kubeconfig > "$HOME/.kube/config"
+          set -e
+          kind create cluster --wait 120s --image kindest/node:v1.28.0
+          kind get kubeconfig > "$GITHUB_WORKSPACE/kubeconfig"
+          echo "KUBECONFIG=$GITHUB_WORKSPACE/kubeconfig" >> "$GITHUB_ENV"
+          chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
           kubectl cluster-info
 
       - name: Install Argo CD
         run: |
+          set -e
           kubectl create namespace argocd
           kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-          kubectl wait --for=condition=Ready pods --all -n argocd --timeout=180s
+          kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
       - name: Apply evaluation Application
         run: |
+          set -e
           kubectl apply -f examples/evaluation/argocd-app.yaml
 
-      - name: Wait for Application Synced (timeout 5 min)
+      - name: Wait for Application Synced (timeout 10 min)
         run: |
-          for i in $(seq 1 60); do
+          set -e
+          for i in $(seq 1 120); do
             status=$(kubectl get application jfrog-platform -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
-            echo "Sync status: $status"
+            echo "[$i/120] Sync status: $status"
             if [[ "$status" == "Synced" ]]; then
               echo "Application is Synced."
-              break
+              exit 0
             fi
-            if [[ $i -eq 60 ]]; then
+            if [[ $i -eq 120 ]]; then
               echo "Timeout waiting for Synced. Last status: $status"
-              kubectl get application jfrog-platform -n argocd -o yaml
+              kubectl get application jfrog-platform -n argocd -o yaml || true
               exit 1
             fi
             sleep 5
           done
 
       - name: Show Application and pods
+        if: always()
         run: |
-          kubectl get application -n argocd
-          kubectl get pods -n jfrog-platform || true
+          kubectl get application -n argocd 2>/dev/null || true
+          kubectl get pods -n jfrog-platform 2>/dev/null || true
