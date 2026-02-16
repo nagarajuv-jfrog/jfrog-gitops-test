@@ -20,3 +20,5 @@ databaseUpgradeReady: true
 artifactory:
   nginx:
     tlsSecretName: jfrog-platform-tls   # use your pre-created secret
+    service:
+      type: NodePort

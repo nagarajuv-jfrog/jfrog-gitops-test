@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://charts.jfrog.io
     chart: jfrog-platform
-    targetRevision: "11.4.0"   # pin for CI; use "*" for latest when testing locally
+    targetRevision: "11.4.2"   # pin for CI; use "*" for latest when testing locally
     helm:
       skipCrds: true
       values: |

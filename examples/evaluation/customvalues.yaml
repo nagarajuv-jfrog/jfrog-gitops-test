@@ -16,7 +16,8 @@ preUpgradeHook:
 upgradeHookSTSDelete:
   enabled: false
 
-# Optional: use pre-created TLS secret to avoid OutOfSync drift
-# artifactory:
-#   nginx:
-#     tlsSecretName: jfrog-platform-tls
+artifactory:
+  nginx:
+    tlsSecretName: jfrog-platform-tls   # use your pre-created secret
+    service:
+      type: NodePort
