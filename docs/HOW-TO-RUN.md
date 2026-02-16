@@ -15,7 +15,6 @@ Use this to try the platform locally with minimal setup (bundled PostgreSQL, no 
 
 - **Kubernetes** — Rancher Desktop (Mac) with cluster running, **or** [kind](https://kind.sigs.k8s.io/) and Docker.
 - **kubectl** — In your PATH and pointing at your cluster.
-- **yq** — For installing Argo CD without the ApplicationSet CRD. Install: `brew install yq`
 
 ## Step 1: Clone the repo
 
@@ -44,31 +43,17 @@ kubectl cluster-info
 kubectl get nodes
 ```
 
-## Step 3: Install Argo CD (without ApplicationSet CRD)
-
-Run these in order:
+## Step 3: Install Argo CD
 
 ```bash
 kubectl create namespace argocd
-```
-
-```bash
-curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-```
-
-```bash
-yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
-```
-
-```bash
-kubectl apply -n argocd -f install-filtered.yaml
-```
-
-```bash
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 ```
 
-(Or use the script: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` if `yq` is installed.)
+Or use the script: `./scripts/setup-argocd.sh`
+
+**Note:** If you see `metadata.annotations: Too long: may not be more than 262144 bytes` (e.g. on some EKS clusters), install without the ApplicationSet CRD: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` (requires [yq](https://github.com/mikefarah/yq)).
 
 ## Step 4: Deploy the evaluation Application
 
@@ -92,7 +77,7 @@ In another terminal:
 kubectl get pods -n jfrog-platform -w
 ```
 
-Artifactory may take 3–5 minutes to become **Ready**. Press **Ctrl+C** when done.
+Artifactory may take 3–5 minutes to become **Ready**. The last resource to turn Healthy in Argo CD is often **jfrog-platform-artifactory-nginx** (nginx waits for Artifactory); once Artifactory is Ready, nginx will follow. Press **Ctrl+C** when done.
 
 ## Step 7: Verify the platform
 
@@ -144,7 +129,6 @@ Use this for a production-style deployment on EKS with RDS and secrets.
 - **AWS CLI** — Configured (`aws configure` or env vars).
 - **EKS cluster** — Already created (Console, Terraform, eksctl, etc.).
 - **kubectl** — 1.26+.
-- **yq** — `brew install yq` (for Argo CD filtered install).
 
 ## Step 1: Configure kubectl for EKS
 
@@ -163,17 +147,17 @@ git clone https://github.com/<YOUR_ORG>/jfrog-gitops-test.git
 cd jfrog-gitops-test
 ```
 
-## Step 3: Install Argo CD on EKS (filtered install)
+## Step 3: Install Argo CD on EKS
 
 ```bash
 kubectl create namespace argocd
-curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
-kubectl apply -n argocd -f install-filtered.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 ```
 
-Or: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh`
+Or: `./scripts/setup-argocd.sh`
+
+**Note:** If you see `metadata.annotations: Too long: may not be more than 262144 bytes`, use the filtered install: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` (requires [yq](https://github.com/mikefarah/yq)).
 
 ## Step 4: Create namespace and secrets
 
@@ -200,35 +184,29 @@ export JOIN_KEY="<from-jfrog-docs>"
 ./scripts/create-tls-secret.sh <your-domain>
 ```
 
-## Step 5: Use the EKS example and set your Git repo
+## Step 5: Configure the EKS example
 
-```bash
-cp examples/eks/argocd-app.yaml .
-cp examples/eks/customvalues.yaml .
-```
-
-Edit **argocd-app.yaml** and replace `<YOUR_ORG>` and `<YOUR_REPO>` with your Git org and repo (so Argo CD pulls values from your fork):
+Edit **examples/eks/argocd-app.yaml** and replace `<YOUR_ORG>` and `<YOUR_REPO>` with your Git org and repo:
 
 ```yaml
 - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
   targetRevision: main
+  path: examples/eks
   ref: values
 ```
 
-Edit **customvalues.yaml** and set at least:
+Edit **examples/eks/customvalues.yaml** and set at least:
 
 - **Artifactory DB URL** — Replace `<RDS_ARTIFACTORY_ENDPOINT>` with your RDS endpoint, e.g. `my-db.xxxx.us-east-1.rds.amazonaws.com`.
 - **Secret names** — Must match what you created (e.g. `artifactory-db-secret`, `xray-db-secret`, `my-platform-keys`).
 - **TLS** — If you created a TLS secret, ensure `artifactory.nginx.tlsSecretName` matches (e.g. `jfrog-platform-tls`).
 
-If you use the same repo for both chart and values (single repo), the Application’s second source can point to your fork; ensure `customvalues.yaml` is in the repo root or the path in `valueFiles` exists.
-
 ## Step 6: Deploy the Application
 
-From the repo root (where `argocd-app.yaml` is):
+From the repo root:
 
 ```bash
-kubectl apply -f argocd-app.yaml
+kubectl apply -f examples/eks/argocd-app.yaml
 ```
 
 ## Step 7: Watch until Synced
@@ -247,7 +225,7 @@ In another terminal:
 kubectl get pods -n jfrog-platform -w
 ```
 
-Wait for Artifactory (and Xray, if enabled) to become **Ready**.
+Artifactory may take 3–5 minutes. The last resource to turn Healthy is often **jfrog-platform-artifactory-nginx** (nginx waits for Artifactory). Wait for Artifactory (and Xray, if enabled) to become **Ready**.
 
 ## Step 9: Verify
 
@@ -279,11 +257,11 @@ kubectl delete namespace jfrog-platform
 | Step              | Local (evaluation)              | EKS (production)                          |
 |-------------------|----------------------------------|-------------------------------------------|
 | Cluster           | Rancher Desktop or kind          | `aws eks update-kubeconfig`               |
-| Argo CD           | Filtered install (yq)            | Filtered install (yq)                     |
-| App manifest       | `examples/evaluation/argocd-app.yaml` | `examples/eks/` → copy and edit repo URL |
-| Values             | Inline in evaluation app         | Edit `customvalues.yaml` (RDS, secrets)   |
+| Argo CD           | Standard install                 | Standard install (filtered if annotation limit) |
+| App manifest       | `examples/evaluation/argocd-app.yaml` | `examples/eks/argocd-app.yaml` (edit repo URL) |
+| Values             | Inline in evaluation app         | `examples/eks/customvalues.yaml` (RDS, secrets)  |
 | Secrets            | None (bundled DB)                | `./scripts/create-secrets.sh`            |
-| Deploy             | `kubectl apply -f examples/evaluation/argocd-app.yaml` | `kubectl apply -f argocd-app.yaml` |
+| Deploy             | `kubectl apply -f examples/evaluation/argocd-app.yaml` | `kubectl apply -f examples/eks/argocd-app.yaml` |
 | Verify             | `curl http://localhost:8082/artifactory/api/system/ping` | Same (after port-forward)        |
 
 For more detail, see [TESTING.md](TESTING.md) (local) and [DEPLOY-EKS.md](DEPLOY-EKS.md) (EKS).

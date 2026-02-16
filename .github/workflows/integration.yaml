@@ -33,16 +33,11 @@ jobs:
           chmod 600 "$GITHUB_WORKSPACE/kubeconfig"
           kubectl cluster-info
 
-      - name: Install Argo CD (excluding ApplicationSet CRD to avoid 262144-byte annotation limit)
+      - name: Install Argo CD
         run: |
           set -e
           kubectl create namespace argocd
-          curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-          curl -fsSL -o yq "https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64"
-          chmod +x yq && sudo mv yq /usr/local/bin/yq
-          yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
-          echo "Skipped applicationsets.argoproj.io CRD (annotation size limit)."
-          kubectl apply -n argocd -f install-filtered.yaml
+          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
           kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
       - name: Apply evaluation Application
@@ -64,7 +59,7 @@ jobs:
             if [[ $((i % 20)) -eq 0 ]]; then
               echo "--- OutOfSync resources (sample) ---"
               kubectl get application jfrog-platform -n argocd -o json 2>/dev/null \
-                | yq '.status.resources[] | select(.status == "OutOfSync") | (.kind + "/" + .name + ": " + (.message // ""))' 2>/dev/null || true
+                | jq -r '.status.resources[]? | select(.status == "OutOfSync") | "\(.kind)/\(.name): \(.message // "")"' 2>/dev/null || true
             fi
             if [[ $i -eq 120 ]]; then
               echo "Timeout waiting for Synced. Last status: $status"
@@ -72,7 +67,7 @@ jobs:
               kubectl get application jfrog-platform -n argocd -o yaml || true
               echo "--- OutOfSync resources ---"
               kubectl get application jfrog-platform -n argocd -o json 2>/dev/null \
-                | yq '.status.resources[] | select(.status == "OutOfSync") | ((.group // "") + "/" + .kind + "/" + .name + ": " + (.message // ""))' 2>/dev/null || true
+                | jq -r '.status.resources[]? | select(.status == "OutOfSync") | "\(.group // "")/\(.kind)/\(.name): \(.message // "")"' 2>/dev/null || true
               exit 1
             fi
             sleep 5

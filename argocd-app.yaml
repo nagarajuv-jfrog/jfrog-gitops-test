@@ -1,4 +1,6 @@
 # argocd-app.yaml
+# Replace <YOUR_ORG>/<YOUR_REPO> with your Git org and repo.
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -16,7 +18,7 @@ spec:
         valueFiles:
           - $values/customvalues.yaml
     # Source 2: Your Git repo with values
-    - repoURL: https://github.com/nagarajuv-jfrog/jfrog-gitops-test.git
+    - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
       targetRevision: main
       ref: values
   destination:

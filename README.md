@@ -34,16 +34,16 @@ This repository provides production-ready Argo CD `Application` manifests and He
                 └──────────┬───────────┘
                            │
                            ▼
-                ┌──────────────────────┐
-                │  Kubernetes Cluster  │
-                │                      │
-                │  namespace:          │
-                │  jfrog-platform      │
-                │                      │
-                │  Artifactory + Nginx │
-                │  Xray (optional)     │
-                │  Distribution (opt)  │
-                └──────────────────────┘
+                ┌────────────────────────────┐
+                │  Kubernetes Cluster        │
+                │                            │
+                │  namespace:                │
+                │  jfrog-platform            │
+                │                            │
+                │  Artifactory + Nginx       │
+                │  Xray (optional)           │
+                │  Distribution (optional)  │
+                └────────────────────────────┘
 ```
 
 Argo CD deploys the same Helm chart (`jfrog-platform`) from the same repo (`https://charts.jfrog.io`) using the same values you would pass to `helm upgrade --install`. The key difference is that Argo CD continuously reconciles the desired state from Git with the live state in the cluster.
@@ -68,7 +68,7 @@ Argo CD deploys the same Helm chart (`jfrog-platform`) from the same repo (`http
 | Argo CD | 2.6+ | 2.6+ required for multi-source Applications |
 | Helm (optional) | 3.x | Only needed if you want to inspect charts locally |
 
-**Deploy on AWS EKS:** For production-grade EKS (RDS, secrets, ALB), see **[docs/DEPLOY-EKS.md](docs/DEPLOY-EKS.md)** and the **[examples/eks/](examples/eks/)** example. Use `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` if the Argo CD install hits the 262144-byte annotation limit.
+**Deploy on AWS EKS:** For production-grade EKS (RDS, secrets, ALB), see **[docs/DEPLOY-EKS.md](docs/DEPLOY-EKS.md)** and the **[examples/eks/](examples/eks/)** example.
 
 ### 1. Install Argo CD
 
@@ -78,22 +78,15 @@ If Argo CD is not already installed on your cluster:
 ./scripts/setup-argocd.sh
 ```
 
-On **EKS** (and other clusters that hit the ApplicationSet CRD annotation limit), use the filtered install:
-
-```bash
-SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh
-```
-
-(Requires [yq](https://github.com/mikefarah/yq). See [docs/DEPLOY-EKS.md](docs/DEPLOY-EKS.md) for full EKS steps.)
-
-Or manually (full install):
+Or manually:
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd \
-  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=180s
 ```
+
+If you see `metadata.annotations: Too long: may not be more than 262144 bytes` (e.g. on some EKS clusters), use the filtered install: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` (requires [yq](https://github.com/mikefarah/yq)).
 
 ### 2. Create Secrets
 
@@ -121,30 +114,34 @@ The JFrog chart auto-generates a self-signed TLS certificate on every Helm rende
 
 The manifests in this repo already include `ignoreDifferences` as a fallback, but pre-creating the secret is the cleanest approach.
 
-### 4. Fork and Customize
+### 4. Choose an example and customize
+
+**Option A — Use an example in place (recommended):** No copying to root. Edit the example you need and apply it.
 
 ```bash
-# Fork this repo, then clone your fork
+# Fork and clone your fork
 git clone https://github.com/<YOUR_ORG>/jfrog-gitops-test.git
 cd jfrog-gitops-test
 
-# Copy the example that fits your environment
-cp examples/evaluation/customvalues.yaml customvalues.yaml
-# OR
-cp examples/production/customvalues.yaml customvalues.yaml
+# For evaluation (local / PoC): just apply (values are inline)
+kubectl apply -f examples/evaluation/argocd-app.yaml
 
-# Edit to match your environment
-vi customvalues.yaml
-
-# Update the Argo CD Application to point to YOUR repo
-vi argocd-app.yaml
-# Change: repoURL: https://github.com/<YOUR_ORG>/jfrog-gitops-test.git
+# For EKS/production: edit that example’s files, then apply
+# Set repo URL in examples/eks/argocd-app.yaml (<YOUR_ORG>/<YOUR_REPO>)
+# Set DB URLs and secrets in examples/eks/customvalues.yaml
+kubectl apply -f examples/eks/argocd-app.yaml
 ```
+
+**Option B — Use repo root:** Copy an example to root and use the root `argocd-app.yaml` (edit it to point to your repo and `customvalues.yaml` at root). Then: `kubectl apply -f argocd-app.yaml`.
 
 ### 5. Deploy
 
 ```bash
-kubectl apply -f argocd-app.yaml
+# Evaluation (local)
+kubectl apply -f examples/evaluation/argocd-app.yaml
+
+# Or EKS / production (after editing that example’s argocd-app.yaml and customvalues.yaml)
+kubectl apply -f examples/eks/argocd-app.yaml
 ```
 
 ### 6. Verify

@@ -153,7 +153,7 @@ If you're adding a new example configuration:
 ### Documentation
 
 - Use Markdown for all docs
-- Include code examples with language hints (````yaml`, ````bash`)
+- Include code examples with language hints (e.g. triple backticks plus `yaml` or `bash`).
 - Keep line length reasonable for readability
 - Link to official docs rather than duplicating content
 

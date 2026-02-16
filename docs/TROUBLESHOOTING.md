@@ -64,6 +64,26 @@ kubectl get pods -n jfrog-platform -w
 
 ---
 
+### Only `jfrog-platform-artifactory-nginx` is Progressing
+
+**Cause:** The Artifactory nginx Deployment is the front proxy; its readiness probe depends on the Artifactory backend. Until the Artifactory pod is Ready, nginx stays not ready and Argo CD shows the nginx resource as **Progressing**.
+
+**Fix:** This is normal on first deploy. Wait for the Artifactory pod to become Ready (often 3–5 minutes). Then nginx will become Ready and the Application will show Healthy.
+
+```bash
+# Watch until Artifactory is Ready, then nginx will follow
+kubectl get pods -n jfrog-platform -w
+```
+
+If it stays Progressing for more than ~10 minutes, check Artifactory logs and readiness:
+
+```bash
+kubectl describe pod -n jfrog-platform -l app=artifactory
+kubectl logs -n jfrog-platform -l app=artifactory -c artifactory --tail=50
+```
+
+---
+
 ### Persistent OutOfSync — Nginx certificate
 
 **Cause:** The JFrog chart auto-generates a self-signed TLS certificate on every Helm render. Argo CD compares the new manifest to the live Secret and always sees a diff.
@@ -133,7 +153,7 @@ ignoreDifferences:
    kubectl logs -n jfrog-platform -l app=artifactory -c artifactory --tail=100
    ```
 
-4. See the official [JFrog Helm chart documentation](https://jfrog.com/help/r/helm-charts/) and [Troubleshooting](https://jfrog.com/help/r/helm-charts/) for DB and filestore setup.
+4. See the official [JFrog Helm chart documentation](https://jfrog.com/help/r/helm-charts/) and [Troubleshooting](https://jfrog.com/help/r/platform-helm-chart-troubleshooting) for DB and filestore setup.
 
 ---
 

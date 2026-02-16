@@ -74,12 +74,9 @@ Use your existing Rancher Desktop Kubernetes cluster.
 # 1. Ensure cluster is up and kubectl targets it
 kubectl cluster-info
 
-# 2. Install Argo CD (without ApplicationSet CRD to avoid 262144-byte annotation limit)
-#    Requires yq: brew install yq
+# 2. Install Argo CD
 kubectl create namespace argocd
-curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
-kubectl apply -n argocd -f install-filtered.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
 # 3. Deploy the evaluation Application
@@ -95,7 +92,7 @@ In another terminal, watch JFrog Platform pods (Artifactory can take 3–5 minut
 kubectl get pods -n jfrog-platform -w
 ```
 
-**Note:** Installing without the ApplicationSet CRD means you can't use ApplicationSet resources; plain `Application` resources (used by this repo) work fine.
+**Note:** If you see `metadata.annotations: Too long: may not be more than 262144 bytes`, use `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` (requires [yq](https://github.com/mikefarah/yq)).
 
 **Clean up**
 

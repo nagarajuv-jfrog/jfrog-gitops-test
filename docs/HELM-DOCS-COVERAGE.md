@@ -93,4 +93,4 @@ Official index: [Helm Charts for Advanced Users](https://jfrog.com/help/r/helm-c
 - **Advanced:** [Helm Charts for Advanced Users](https://jfrog.com/help/r/helm-charts-for-advanced-users)
 - **Charts source:** [jfrog/charts](https://github.com/jfrog/charts)
 
-*Note: Replace `/docs/...` with your actual JFrog doc base URL if different (e.g. `https://jfrog.com/help/r/...`).*
+*Note: If your organization uses a different doc base URL, adjust the links accordingly.*

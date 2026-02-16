@@ -20,6 +20,7 @@ spec:
           - $values/sizing/platform-medium.yaml
     - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
       targetRevision: main
+      path: examples/multi-source
       ref: values
   destination:
     server: https://kubernetes.default.svc

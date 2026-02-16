@@ -19,6 +19,7 @@ spec:
           - $values/customvalues.yaml
     - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
       targetRevision: main
+      path: examples/eks
       ref: values
   destination:
     server: https://kubernetes.default.svc

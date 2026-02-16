@@ -12,10 +12,10 @@ Ready-to-use Argo CD Application manifests and Helm value overlays for different
 
 ## How to use
 
-1. Copy the `argocd-app.yaml` and `customvalues.yaml` from the example that fits your environment.
-2. Replace `<YOUR_ORG>` / `<YOUR_REPO>` in `argocd-app.yaml` with your Git repo URL.
-3. Edit `customvalues.yaml` (DB URLs, secrets, sizing). Never commit credentials.
-4. Create required secrets (see [../scripts/](../scripts/) and main [../README.md](../README.md)).
-5. Apply: `kubectl apply -f argocd-app.yaml`
+1. Choose the example that fits your environment (evaluation, eks, production, openshift, or multi-source).
+2. For multi-source examples (eks, production, openshift, multi-source): edit that example’s `argocd-app.yaml` and set `<YOUR_ORG>` / `<YOUR_REPO>` to your Git repo URL. Values are read from the same example directory (no copying to repo root).
+3. Edit that example’s `customvalues.yaml` (DB URLs, secrets, sizing). Never commit credentials.
+4. Create required secrets when needed (see [../scripts/](../scripts/) and main [../README.md](../README.md)).
+5. From the repo root, apply: `kubectl apply -f examples/<name>/argocd-app.yaml` (e.g. `kubectl apply -f examples/eks/argocd-app.yaml`).
 
 For fresh installs, ensure `preUpgradeHook.enabled: false` and `upgradeHookSTSDelete.enabled: false` in values; re-enable after first successful deploy (see [../docs/UPGRADING.md](../docs/UPGRADING.md)).

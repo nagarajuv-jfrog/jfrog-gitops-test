@@ -12,7 +12,6 @@ Step-by-step instructions to deploy the JFrog Platform on **Amazon EKS** using A
 | **kubectl** | 1.26+ |
 | **EKS cluster** | 1.26+; created via AWS Console, Terraform, eksctl, or CloudFormation |
 | **Helm** (optional) | For local `helm template` checks |
-| **yq** (optional) | For installing Argo CD without the ApplicationSet CRD (avoids 262144-byte annotation limit on many clusters) |
 
 ---
 
@@ -33,33 +32,15 @@ kubectl get nodes
 
 ## 2. Install Argo CD on EKS
 
-Many clusters (including EKS) hit the **262144-byte annotation limit** on the ApplicationSet CRD. Install Argo CD **without** that CRD so the install succeeds. You will still use normal `Application` resources (this repo does not use ApplicationSet).
-
-**Option A: Filtered install (recommended)**
-
-Requires [yq](https://github.com/mikefarah/yq) (`brew install yq` on macOS):
-
 ```bash
 kubectl create namespace argocd
-curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
-kubectl apply -n argocd -f install-filtered.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 ```
 
-**Option B: Use the setup script with filter**
+Or use the script: `./scripts/setup-argocd.sh`
 
-```bash
-SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh
-```
-
-**Option C: Full install (only if your cluster accepts the ApplicationSet CRD)**
-
-```bash
-./scripts/setup-argocd.sh
-```
-
-If you see `metadata.annotations: Too long: may not be more than 262144 bytes`, use Option A or B.
+**Note:** If you see `metadata.annotations: Too long: may not be more than 262144 bytes`, install without the ApplicationSet CRD: `SKIP_APPLICATIONSET_CRD=1 ./scripts/setup-argocd.sh` (requires [yq](https://github.com/mikefarah/yq)).
 
 ---
 
@@ -92,7 +73,7 @@ For RDS endpoints and secret keys, see [scripts/create-secrets.sh](../scripts/cr
 
 ---
 
-## 4. Fork, clone, and choose your example
+## 4. Fork, clone, and configure your example
 
 1. **Fork** this repo and **clone** your fork.
 2. Use the **EKS** or **production** example:
@@ -102,24 +83,17 @@ For RDS endpoints and secret keys, see [scripts/create-secrets.sh](../scripts/cr
 | [examples/eks/](../examples/eks/) | Production-grade EKS: RDS, secrets, ALB-ready values, full ignoreDifferences |
 | [examples/production/](../examples/production/) | Production with external DB; same pattern, not EKS-specific |
 
-3. Copy the example into your repo root (or use the example path when applying):
-
-```bash
-# If using EKS example and deploying from repo root
-cp examples/eks/argocd-app.yaml .
-cp examples/eks/customvalues.yaml .
-```
-
-4. **Edit `argocd-app.yaml`**  
-   Replace `<YOUR_ORG>` and `<YOUR_REPO>` with your Git org and repo so Argo CD pulls values from your fork:
+3. **Edit the example’s `argocd-app.yaml`** (e.g. `examples/eks/argocd-app.yaml`)  
+   Replace `<YOUR_ORG>` and `<YOUR_REPO>` with your Git org and repo. The `path` already points to the example directory so values are read from there:
 
    ```yaml
    - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
      targetRevision: main
+     path: examples/eks
      ref: values
    ```
 
-5. **Edit `customvalues.yaml`**  
+4. **Edit the example’s `customvalues.yaml`** (e.g. `examples/eks/customvalues.yaml`)  
    Set at least:
    - **Database URLs** — Artifactory and Xray RDS endpoints (e.g. `jdbc:postgresql://<rds-endpoint>:5432/artifactory`).
    - **Secret names** — Must match the secrets you created (e.g. `artifactory-db-secret`, `xray-db-secret`, `my-platform-keys`).
@@ -131,19 +105,13 @@ cp examples/eks/customvalues.yaml .
 
 ## 5. Deploy the Application
 
-From the repo root (where your `argocd-app.yaml` lives):
-
-```bash
-kubectl apply -f argocd-app.yaml
-```
-
-If you did not copy to root:
+From the repo root:
 
 ```bash
 kubectl apply -f examples/eks/argocd-app.yaml
 ```
 
-(Ensure the Application’s `valueFiles` point to the correct path; the EKS example uses `$values/customvalues.yaml` from the Git ref.)
+The Application uses multi-source: the chart from JFrog and values from your repo at `examples/eks/` (no copying files to root).
 
 ---
 
@@ -192,9 +160,9 @@ To expose the platform over HTTPS using an **Application Load Balancer**, use th
 ## Summary checklist
 
 - [ ] EKS cluster created and `kubectl` configured (`aws eks update-kubeconfig`)
-- [ ] Argo CD installed (filtered install if you hit the 262144-byte CRD limit)
+- [ ] Argo CD installed (use filtered install only if you hit the 262144-byte annotation limit)
 - [ ] Namespace `jfrog-platform` and secrets created
-- [ ] Repo forked; `argocd-app.yaml` and `customvalues.yaml` updated (repo URL, DB URLs, secret names)
+- [ ] Repo forked; `examples/eks/argocd-app.yaml` (repo URL) and `examples/eks/customvalues.yaml` (DB, secrets) updated
 - [ ] Application applied and Synced
 - [ ] Pods Running/Ready; optional Ingress/ALB for external access
 
