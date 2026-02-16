@@ -1,0 +1,11 @@
+# Relaxed rules for Helm values and K8s manifests
+extends: default
+rules:
+  line-length:
+    max: 160
+    allow-non-breakable-inline-mappings: true
+  document-start: disable
+  comments: disable
+
+ignore:
+  - .git/

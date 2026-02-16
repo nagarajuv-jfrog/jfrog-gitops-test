@@ -188,9 +188,14 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 │   ├── setup-argocd.sh          # Install Argo CD on your cluster
 │   ├── create-secrets.sh        # Create Kubernetes secrets for JFrog Platform
 │   └── create-tls-secret.sh     # Pre-create a stable TLS secret
+├── .github/
+│   └── workflows/
+│       ├── validate.yaml        # CI: YAML lint, Helm template, scripts, dry-run
+│       └── integration.yaml     # Optional: kind + Argo CD (manual trigger)
 ├── docs/
 │   ├── HELM-DOCS-COVERAGE.md    # Mapping to official Helm install/upgrade/uninstall docs
 │   ├── INGRESS-ROUTE.md         # Expose platform (Kubernetes Ingress / OpenShift Route)
+│   ├── TESTING.md               # How to test (CI, local, checklist before going public)
 │   ├── TROUBLESHOOTING.md       # Common issues and fixes
 │   ├── UNINSTALL.md             # Uninstall via Argo CD and cleanup
 │   └── UPGRADING.md             # Upgrade procedures
@@ -269,6 +274,14 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and fix
 - **[Upgrade](docs/UPGRADING.md)** — Argo CD flow; [official upgrade guide](https://jfrog.com/help/r/upgrade-jfrog-platform-using-helm-chart) for rollback and major versions.
 - **[Uninstall](docs/UNINSTALL.md)** — Remove Application and optional PVC/external cleanup.
 - **Advanced** — [Official: Helm Charts for Advanced Users](https://jfrog.com/help/r/helm-charts-for-advanced-users).
+
+## Testing
+
+Before making the repo public, run the automated checks and optionally the integration test:
+
+- **Validate (CI):** On every push/PR, GitHub Actions run YAML lint, Helm template, script syntax check, and `kubectl apply --dry-run` on all manifests. See [Actions](https://github.com/nagarajuv-jfrog/jfrog-gitops-test/actions).
+- **Integration (manual):** In the Actions tab, run the workflow **Integration (kind + Argo CD)** to deploy the evaluation example on a kind cluster and verify Argo CD syncs.
+- **Local:** See [docs/TESTING.md](docs/TESTING.md) for local validation and a pre-public checklist.
 
 ## Contributing
 

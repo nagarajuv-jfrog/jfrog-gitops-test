@@ -1,0 +1,52 @@
+# Optional: run a full integration test (kind + Argo CD + deploy evaluation app).
+# Trigger manually to verify the evaluation example deploys and syncs.
+# Requires: Docker (available on GitHub-hosted runners). Image pulls from
+# releases-docker.jfrog.io may require auth in private environments.
+name: Integration (kind + Argo CD)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  integration:
+    name: kind + Argo CD + JFrog Platform (evaluation)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: containerd/kind-action@v3
+        with:
+          node_image: kindest/node:v1.28.0
+
+      - name: Install Argo CD
+        run: |
+          kubectl create namespace argocd
+          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+          kubectl wait --for=condition=Ready pods --all -n argocd --timeout=180s
+
+      - name: Apply evaluation Application
+        run: |
+          kubectl apply -f examples/evaluation/argocd-app.yaml
+
+      - name: Wait for Application Synced (timeout 5 min)
+        run: |
+          for i in $(seq 1 60); do
+            status=$(kubectl get application jfrog-platform -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null || echo "Unknown")
+            echo "Sync status: $status"
+            if [[ "$status" == "Synced" ]]; then
+              echo "Application is Synced."
+              break
+            fi
+            if [[ $i -eq 60 ]]; then
+              echo "Timeout waiting for Synced. Last status: $status"
+              kubectl get application jfrog-platform -n argocd -o yaml
+              exit 1
+            fi
+            sleep 5
+          done
+
+      - name: Show Application and pods
+        run: |
+          kubectl get application -n argocd
+          kubectl get pods -n jfrog-platform || true
