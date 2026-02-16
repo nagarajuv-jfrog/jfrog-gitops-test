@@ -1,4 +1,32 @@
-tls.crt
-tls.key
-tls.crt
-tls.key
+# TLS certificates and private keys
+*.key
+*.crt
+*.pem
+
+# Kubernetes secrets (if accidentally saved locally)
+*-secret.yaml
+*-secrets.yaml
+
+# Environment files
+.env
+.env.*
+
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Helm
+*.tgz
+charts/
+
+# Terraform (if used for infra)
+.terraform/
+*.tfstate
+*.tfstate.*
