@@ -43,7 +43,7 @@ jobs:
       - name: Add JFrog Helm repo
         run: |
           helm repo add jfrog https://charts.jfrog.io
-          helm repo update
+          helm repo update jfrog
 
       - name: Template root (customvalues.yaml)
         run: |
@@ -115,11 +115,10 @@ jobs:
         with:
           node_image: kindest/node:v1.28.0
 
-      - name: Install Argo CD CRDs (for Application kind validation)
+      - name: Install Argo CD Application CRD only (for dry-run validation)
         run: |
-          kubectl create namespace argocd
-          kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-          kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=90s
+          kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
+          kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=60s
 
       - name: Dry-run root argocd-app.yaml
         run: kubectl apply --dry-run=client -f argocd-app.yaml

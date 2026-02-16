@@ -5,7 +5,8 @@ rules:
     max: 160
     allow-non-breakable-inline-mappings: true
   document-start: disable
-  comments: disable
+  new-line-at-end-of-file: enable
+  truthy: disable  # GitHub Actions uses "on:", workflow_dispatch: {} etc.
 
 ignore:
   - .git/
