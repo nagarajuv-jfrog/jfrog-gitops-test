@@ -46,34 +46,40 @@ jobs:
           helm repo update jfrog
           helm search repo jfrog/jfrog-platform --versions | head -5
 
+      # Pin chart version for reproducibility; update when upgrading examples.
       # No --validate: that flag contacts a Kubernetes API server; this job has no cluster.
       - name: Template root (customvalues.yaml)
         run: |
           helm template jfrog-platform jfrog/jfrog-platform \
+            --version "11.4.2" \
             -f customvalues.yaml \
             --namespace jfrog-platform
 
       - name: Template examples/evaluation
         run: |
           helm template jfrog-platform jfrog/jfrog-platform \
+            --version "11.4.2" \
             -f examples/evaluation/customvalues.yaml \
             --namespace jfrog-platform
 
       - name: Template examples/production
         run: |
           helm template jfrog-platform jfrog/jfrog-platform \
+            --version "11.4.2" \
             -f examples/production/customvalues.yaml \
             --namespace jfrog-platform
 
       - name: Template examples/openshift
         run: |
           helm template jfrog-platform jfrog/jfrog-platform \
+            --version "11.4.2" \
             -f examples/openshift/customvalues.yaml \
             --namespace jfrog-platform
 
       - name: Template examples/multi-source (base + sizing)
         run: |
           helm template jfrog-platform jfrog/jfrog-platform \
+            --version "11.4.2" \
             -f examples/multi-source/customvalues.yaml \
             -f examples/multi-source/sizing/platform-medium.yaml \
             --namespace jfrog-platform
@@ -86,6 +92,7 @@ jobs:
 
       - name: Check script syntax (bash -n)
         run: |
+          shopt -s nullglob
           for f in scripts/*.sh; do
             bash -n "$f" || { echo "Syntax error in $f"; exit 1; }
           done
@@ -100,6 +107,8 @@ jobs:
   kubectl-dry-run:
     name: Argo CD manifests (kubectl dry-run)
     runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: ${{ github.workspace }}/kubeconfig
     steps:
       - uses: actions/checkout@v4
 

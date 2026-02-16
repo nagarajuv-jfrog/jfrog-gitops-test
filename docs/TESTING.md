@@ -22,26 +22,42 @@ Use these checks to validate the repo before exposing it publicly.
 
 **Note:** If JFrog container images require authentication, the integration job may show ImagePullBackOff; the Sync step can still succeed and validates the manifests.
 
-## 2. Local validation (no cluster)
+## 2. Run CI checks locally
 
-Run these on your machine before pushing:
+Run the same checks as the Validate workflow without pushing:
+
+```bash
+./scripts/ci-local.sh
+```
+
+**Prerequisites:** Python (for `yamllint`), Helm 3. Optional: `kind` and `kubectl` for the dry-run step (if a kind cluster is running with the Application CRD installed).
+
+- To install yamllint: `pip install yamllint`
+- To install Helm: see [helm.sh](https://helm.sh/docs/intro/install/)
+- To install kind and kubectl: see [kind.sigs.k8s.io](https://kind.sigs.k8s.io/)
+
+The script runs: yaml lint, helm template (all examples, chart version 11.4.2), shell syntax check, and optionally kubectl dry-run when a cluster is available.
+
+## 3. Local validation (manual commands)
+
+Alternatively, run these on your machine before pushing:
 
 ```bash
 # YAML lint (install: pip install yamllint)
-yamllint argocd-app.yaml customvalues.yaml examples/ .github/
+yamllint argocd-app.yaml customvalues.yaml examples/ .github/workflows/
 
-# Helm template (install Helm 3, add repo: helm repo add jfrog https://charts.jfrog.io && helm repo update)
-helm template jfrog-platform jfrog/jfrog-platform -f customvalues.yaml --namespace jfrog-platform --validate
+# Helm template (install Helm 3, add repo: helm repo add jfrog https://charts.jfrog.io && helm repo update jfrog)
+helm template jfrog-platform jfrog/jfrog-platform --version "11.4.2" -f customvalues.yaml --namespace jfrog-platform
 
 # Script syntax
-for f in scripts/*.sh; do bash -n "$f"; done
+shopt -s nullglob; for f in scripts/*.sh; do bash -n "$f"; done
 
-# Argo CD manifest dry-run (requires kubectl)
+# Argo CD manifest dry-run (requires kubectl + Application CRD)
 kubectl apply --dry-run=client -f argocd-app.yaml
 for f in examples/*/argocd-app.yaml; do kubectl apply --dry-run=client -f "$f"; done
 ```
 
-## 3. Local integration test (with cluster)
+## 4. Local integration test (with cluster)
 
 If you have **Docker** and **kubectl**:
 
@@ -66,7 +82,7 @@ kubectl get pods -n jfrog-platform -w
 
 Clean up: `kind delete cluster`.
 
-## 4. Checklist before making the repo public
+## 5. Checklist before making the repo public
 
 - [ ] **Validate** workflow is green on `main` (push and/or open a PR and merge).
 - [ ] **Integration** workflow runs successfully when triggered manually (optional but recommended).
