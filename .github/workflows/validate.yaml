@@ -143,7 +143,8 @@ jobs:
         run: |
           set -e
           kubectl apply --dry-run=client -f argocd-app.yaml
-          for f in examples/evaluation/argocd-app.yaml examples/production/argocd-app.yaml examples/openshift/argocd-app.yaml examples/multi-source/argocd-app.yaml; do
+          for f in examples/evaluation/argocd-app.yaml examples/production/argocd-app.yaml \
+            examples/openshift/argocd-app.yaml examples/multi-source/argocd-app.yaml; do
             echo "Checking $f"
             kubectl apply --dry-run=client -f "$f"
           done

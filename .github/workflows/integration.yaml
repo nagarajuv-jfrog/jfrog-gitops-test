@@ -38,17 +38,10 @@ jobs:
           set -e
           kubectl create namespace argocd
           curl -fsSL -o install.yaml "https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-          ruby -r yaml -e "
-            docs = YAML.load_stream(File.read('install.yaml'))
-            docs.each do |doc|
-              next if doc.nil?
-              if doc['kind'] == 'CustomResourceDefinition' && doc.dig('metadata', 'name') == 'applicationsets.argoproj.io'
-                puts 'Skipping applicationsets.argoproj.io CRD (annotation size limit).'
-                next
-              end
-              puts doc.to_yaml
-            end
-          " > install-filtered.yaml
+          curl -fsSL -o yq "https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64"
+          chmod +x yq && sudo mv yq /usr/local/bin/yq
+          yq eval-all 'select(.kind != "CustomResourceDefinition" or .metadata.name != "applicationsets.argoproj.io")' install.yaml > install-filtered.yaml
+          echo "Skipped applicationsets.argoproj.io CRD (annotation size limit)."
           kubectl apply -n argocd -f install-filtered.yaml
           kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 
