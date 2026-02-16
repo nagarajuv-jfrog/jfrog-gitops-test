@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create kind cluster
-        uses: containerd/kind-action@v3
+        uses: helm/kind-action@v1
         with:
           node_image: kindest/node:v1.28.0
 
