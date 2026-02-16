@@ -1,0 +1,54 @@
+# Argo CD Application: JFrog Platform (Evaluation)
+# Use case: Local testing, PoC, demos. Bundled PostgreSQL, minimal resources.
+# Argo CD: 2.4+ (single source)
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jfrog-platform
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.jfrog.io
+    chart: jfrog-platform
+    targetRevision: "*"   # latest chart version; pin for production
+    helm:
+      skipCrds: true
+      values: |
+        postgresql:
+          enabled: true
+        xray:
+          enabled: false
+        distribution:
+          enabled: false
+        rabbitmq:
+          enabled: false
+        preUpgradeHook:
+          enabled: false
+        upgradeHookSTSDelete:
+          enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jfrog-platform
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: jfrog-platform-artifactory-nginx-certificate
+      jsonPointers:
+        - /data/tls.crt
+        - /data/tls.key
+    - group: apps
+      kind: StatefulSet
+      name: jfrog-platform-artifactory
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[].spec
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

@@ -1,0 +1,35 @@
+# Production values for JFrog Platform
+# Use Kubernetes secrets for DB credentials, master/join keys, licenses.
+# Never commit plaintext credentials to Git.
+
+postgresql:
+  enabled: false
+
+global:
+  masterKeySecretName: "my-platform-keys"
+  joinKeySecretName: "my-platform-keys"
+
+artifactory:
+  artifactory:
+    database:
+      type: postgresql
+      driver: org.postgresql.Driver
+      url: "jdbc:postgresql://<DB_HOST>:5432/artifactory"
+      # user and password from Kubernetes secret
+      secretName: "artifactory-db-secret"
+  nginx:
+    tlsSecretName: jfrog-platform-tls
+
+xray:
+  enabled: true
+  database:
+    # Use a secret for URL or individual fields
+    secretName: "xray-db-secret"
+
+# Re-enable hooks after first successful deploy (for upgrades)
+preUpgradeHook:
+  enabled: true
+upgradeHookSTSDelete:
+  enabled: true
+
+# Add sizing overlays as needed (see examples/multi-source/sizing/)

@@ -1,0 +1,46 @@
+# Argo CD Application: JFrog Platform on OpenShift
+# Use case: OpenShift 4.x. Security context overrides from openshift-values.yaml.
+# Argo CD: 2.6+. Replace <YOUR_ORG>/<YOUR_REPO> with your Git repo.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jfrog-platform
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.jfrog.io
+      chart: jfrog-platform
+      targetRevision: "11.4.2"
+      helm:
+        skipCrds: true
+        valueFiles:
+          - $values/customvalues.yaml
+    - repoURL: https://github.com/<YOUR_ORG>/<YOUR_REPO>.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jfrog-platform
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: jfrog-platform-artifactory-nginx-certificate
+      jsonPointers:
+        - /data/tls.crt
+        - /data/tls.key
+    - group: apps
+      kind: StatefulSet
+      name: jfrog-platform-artifactory
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[].spec
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

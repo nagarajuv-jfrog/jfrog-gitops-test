@@ -1,0 +1,22 @@
+# Evaluation / PoC values for JFrog Platform
+# Bundled PostgreSQL, no Xray/Distribution/RabbitMQ
+postgresql:
+  enabled: true
+
+xray:
+  enabled: false
+distribution:
+  enabled: false
+rabbitmq:
+  enabled: false
+
+# Required for fresh install via Argo CD
+preUpgradeHook:
+  enabled: false
+upgradeHookSTSDelete:
+  enabled: false
+
+# Optional: use pre-created TLS secret to avoid OutOfSync drift
+# artifactory:
+#   nginx:
+#     tlsSecretName: jfrog-platform-tls

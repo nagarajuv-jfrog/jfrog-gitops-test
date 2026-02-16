@@ -1,0 +1,20 @@
+# Base values for multi-source deployment
+# Sizing overlay is applied via valueFiles: sizing/platform-medium.yaml
+
+postgresql:
+  enabled: false
+
+global:
+  masterKeySecretName: "my-platform-keys"
+  joinKeySecretName: "my-platform-keys"
+
+artifactory:
+  nginx:
+    tlsSecretName: jfrog-platform-tls
+
+preUpgradeHook:
+  enabled: true
+upgradeHookSTSDelete:
+  enabled: true
+
+# Add DB, Xray, filestore config; sizing in sizing/platform-medium.yaml

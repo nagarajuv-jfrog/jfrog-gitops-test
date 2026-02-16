@@ -1,0 +1,28 @@
+# OpenShift values for JFrog Platform
+# Security context overrides from: https://github.com/jfrog/charts/blob/master/stable/jfrog-platform/openshift-values.yaml
+
+postgresql:
+  enabled: false
+
+global:
+  masterKeySecretName: "my-platform-keys"
+  joinKeySecretName: "my-platform-keys"
+
+# OpenShift security context overrides
+artifactory:
+  artifactory:
+    uid: null
+    gid: null
+    podSecurityContext:
+      enabled: false
+    containerSecurityContext:
+      enabled: false
+  nginx:
+    tlsSecretName: jfrog-platform-tls
+
+# Add your DB and filestore config here; use secrets for credentials
+
+preUpgradeHook:
+  enabled: false
+upgradeHookSTSDelete:
+  enabled: false

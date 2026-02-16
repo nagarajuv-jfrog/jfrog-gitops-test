@@ -1,0 +1,23 @@
+# Sizing overlay: medium platform (example)
+# Merge with customvalues.yaml via Argo CD valueFiles
+# Adjust resource requests/limits per your cluster capacity
+
+artifactory:
+  artifactory:
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+
+postgresql:
+  primary:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
