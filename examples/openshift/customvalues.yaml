@@ -7,6 +7,8 @@ postgresql:
 global:
   masterKeySecretName: "my-platform-keys"
   joinKeySecretName: "my-platform-keys"
+  database:
+    initDBCreation: false   # external DB; create DB/schema yourself or via init
 
 # OpenShift security context overrides
 artifactory:
