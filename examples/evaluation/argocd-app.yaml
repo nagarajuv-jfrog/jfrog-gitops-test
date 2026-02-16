@@ -51,18 +51,12 @@ spec:
       jqPathExpressions:
         - .spec.clusterIP
         - .spec.clusterIPs
-    # K8s can mutate volumeClaimTemplates, container resources, and pod template after create
+    # StatefulSet spec is often mutated by K8s (defaults, PVCs, template metadata); ignore full spec
     - group: apps
       kind: StatefulSet
       name: jfrog-platform-artifactory
       jqPathExpressions:
-        - .spec.volumeClaimTemplates[].spec
-        - .spec.template.spec.containers[].resources
-        - .spec.template.spec.initContainers[].resources
-        - .spec.template.metadata
-        - .spec.updateStrategy
-        - .spec.persistentVolumeClaimRetentionPolicy
-        - .metadata.annotations
+        - .spec
   syncPolicy:
     automated:
       prune: true
