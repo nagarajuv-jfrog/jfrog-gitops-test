@@ -14,10 +14,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install kind and kubectl
+        run: |
+          curl -Lo ./kind "https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64"
+          chmod +x ./kind && sudo mv ./kind /usr/local/bin/kind
+          curl -Lo kubectl "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl && sudo mv kubectl /usr/local/bin/kubectl
+
       - name: Create kind cluster
-        uses: helm/kind-action@v1
-        with:
-          node_image: kindest/node:v1.28.0
+        run: |
+          kind create cluster --wait 90s --image kindest/node:v1.28.0
+
+      - name: Set kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          kind get kubeconfig > "$HOME/.kube/config"
+          kubectl cluster-info
 
       - name: Install Argo CD
         run: |
