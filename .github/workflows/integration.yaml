@@ -60,9 +60,17 @@ jobs:
               echo "Application is Synced."
               exit 0
             fi
+            # Every 20 polls, dump OutOfSync resources for debugging
+            if [[ $((i % 20)) -eq 0 ]]; then
+              echo "--- OutOfSync resources (sample) ---"
+              kubectl get application jfrog-platform -n argocd -o json 2>/dev/null | yq '.status.resources[] | select(.status == "OutOfSync") | "\(.kind)/\(.name): \(.message)"' 2>/dev/null || true
+            fi
             if [[ $i -eq 120 ]]; then
               echo "Timeout waiting for Synced. Last status: $status"
+              echo "--- Full Application status ---"
               kubectl get application jfrog-platform -n argocd -o yaml || true
+              echo "--- OutOfSync resources ---"
+              kubectl get application jfrog-platform -n argocd -o json 2>/dev/null | yq '.status.resources[] | select(.status == "OutOfSync") | "\(.group)/\(.kind)/\(.name): \(.message)"' 2>/dev/null || true
               exit 1
             fi
             sleep 5
