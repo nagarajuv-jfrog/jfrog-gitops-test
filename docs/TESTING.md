@@ -36,7 +36,7 @@ Run the same checks as the Validate workflow without pushing:
 - To install Helm: see [helm.sh](https://helm.sh/docs/intro/install/)
 - To install kind and kubectl: see [kind.sigs.k8s.io](https://kind.sigs.k8s.io/)
 
-The script runs: yaml lint, helm template (all examples, chart version 11.4.2), shell syntax check, and optionally kubectl dry-run when a cluster is available.
+The script runs: yaml lint, helm template (all examples, chart version 11.4.0), shell syntax check, and optionally kubectl dry-run when a cluster is available.
 
 ## 3. Local validation (manual commands)
 
@@ -47,7 +47,7 @@ Alternatively, run these on your machine before pushing:
 yamllint argocd-app.yaml customvalues.yaml examples/ .github/workflows/
 
 # Helm template (install Helm 3, add repo: helm repo add jfrog https://charts.jfrog.io && helm repo update jfrog)
-helm template jfrog-platform jfrog/jfrog-platform --version "11.4.2" -f customvalues.yaml --namespace jfrog-platform
+helm template jfrog-platform jfrog/jfrog-platform --version "11.4.0" -f customvalues.yaml --namespace jfrog-platform
 
 # Script syntax
 shopt -s nullglob; for f in scripts/*.sh; do bash -n "$f"; done

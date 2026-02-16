@@ -3,7 +3,7 @@
 # Prerequisites: Python + yamllint, Helm 3, optional: kind + kubectl for dry-run.
 set -euo pipefail
 
-CHART_VERSION="${CHART_VERSION:-11.4.2}"
+CHART_VERSION="${CHART_VERSION:-11.4.0}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 

@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://charts.jfrog.io
       chart: jfrog-platform
-      targetRevision: "11.4.2"   # Pin for production; verify: helm search repo jfrog/jfrog-platform --versions
+      targetRevision: "11.4.0"   # Pin for production; verify: helm search repo jfrog/jfrog-platform --versions
       helm:
         skipCrds: true
         valueFiles:

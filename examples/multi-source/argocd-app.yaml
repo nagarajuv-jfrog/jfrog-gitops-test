@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: https://charts.jfrog.io
       chart: jfrog-platform
-      targetRevision: "11.4.2"
+      targetRevision: "11.4.0"
       helm:
         skipCrds: true
         valueFiles:

@@ -10,7 +10,7 @@ assignees: ''
 
 - **Kubernetes:** (e.g. EKS 1.28, OpenShift 4.12, minikube)
 - **Argo CD version:** (e.g. 2.9.0)
-- **JFrog Platform chart version:** (e.g. 11.4.2)
+- **JFrog Platform chart version:** (e.g. 11.4.0)
 - **Example used:** (e.g. evaluation, production, multi-source)
 
 ## Steps to reproduce

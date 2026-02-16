@@ -37,7 +37,7 @@ Edit the Application manifest and set a new `targetRevision`:
 spec:
   source:
     chart: jfrog-platform
-    targetRevision: "11.4.2"   # change to desired version
+    targetRevision: "11.4.0"   # change to desired version
 ```
 
 **Multi-source Application (chart + Git values):**  
@@ -48,7 +48,7 @@ spec:
   sources:
     - repoURL: https://charts.jfrog.io
       chart: jfrog-platform
-      targetRevision: "11.4.2"   # change to desired version
+      targetRevision: "11.4.0"   # change to desired version
       helm:
         valueFiles:
           - $values/customvalues.yaml
@@ -78,7 +78,7 @@ kubectl apply -f argocd-app.yaml
 ```bash
 # After editing argocd-app.yaml and/or customvalues.yaml
 git add argocd-app.yaml customvalues.yaml
-git commit -m "Upgrade JFrog Platform chart to 11.4.2"
+git commit -m "Upgrade JFrog Platform chart to 11.4.0"
 git push origin main
 ```
 

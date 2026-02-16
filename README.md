@@ -290,6 +290,13 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and fix
 - **[Uninstall](docs/UNINSTALL.md)** — Remove Application and optional PVC/external cleanup.
 - **Advanced** — [Official: Helm Charts for Advanced Users](https://jfrog.com/help/r/helm-charts-for-advanced-users).
 
+## How to run (step-by-step)
+
+**New to this repo?** Follow **[docs/HOW-TO-RUN.md](docs/HOW-TO-RUN.md)** for copy-paste steps:
+
+- **Path A: Local** — Evaluation on Rancher Desktop or kind (no external DB).
+- **Path B: AWS EKS** — Production on EKS with RDS and secrets.
+
 ## Testing
 
 Before making the repo public, run the automated checks and optionally the integration test:
